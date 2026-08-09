@@ -13,8 +13,7 @@ from app.config.settings import get_settings
 from app.database.base import Base
 
 # Import models so they are registered on Base.metadata for autogenerate.
-# Importing the models package is enough; add modules here as models are created.
-# from app import models  # noqa: F401
+from app import models  # noqa: F401
 
 config = context.config
 
