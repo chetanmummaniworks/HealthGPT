@@ -1,99 +1,238 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getCurrentUser, type User } from '../api/auth'
-import { useAuth } from '../context/AuthContext'
+import { useNavigate } from "react-router-dom";
+
+import {
+  Stethoscope,
+  FileText,
+  MessageCircle,
+  MapPin,
+  ArrowRight,
+} from "lucide-react";
+
+import { useTranslation } from "react-i18next";
+
+import { useAuth } from "../context/AuthContext";
 
 export default function DashboardPage() {
-  const { token, logout } = useAuth()
-  const [user, setUser] = useState<User | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    let cancelled = false
+  const { user } = useAuth();
 
-    async function loadUser() {
-      if (!token) {
-        navigate('/login')
-        return
-      }
-      try {
-        const currentUser = await getCurrentUser(token)
-        if (!cancelled) {
-          setUser(currentUser)
-        }
-      } catch {
-        if (!cancelled) {
-          setError('Unable to load your profile. Please log in again.')
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    }
+  const { t } = useTranslation();
 
-    loadUser()
+  const firstName =
+    user?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "there";
 
-    return () => {
-      cancelled = true
-    }
-  }, [token, navigate])
+  // ==========================================================
+  // TIME-BASED GREETING
+  // ==========================================================
 
-  function handleLogout() {
-    logout()
-    navigate('/login')
+  const hour = new Date().getHours();
+
+  let greetingKey = "dashboard.greeting.morning";
+
+  if (hour >= 12 && hour < 17) {
+    greetingKey = "dashboard.greeting.afternoon";
+  } else if (hour >= 17 && hour < 21) {
+    greetingKey = "dashboard.greeting.evening";
+  } else if (hour >= 21 || hour < 5) {
+    greetingKey = "dashboard.greeting.night";
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-600" role="status">
-          Loading your profile...
-        </p>
-      </div>
-    )
-  }
+  // ==========================================================
+  // DASHBOARD FEATURES
+  // ==========================================================
+
+  const features = [
+    {
+      key: "symptomChecker",
+      path: "/symptom-checker",
+      icon: Stethoscope,
+    },
+    {
+      key: "reports",
+      path: "/reports",
+      icon: FileText,
+    },
+    {
+      key: "chat",
+      path: "/chat",
+      icon: MessageCircle,
+    },
+    {
+      key: "doctors",
+      path: "/doctors",
+      icon: MapPin,
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <h1 className="text-xl font-bold text-gray-900">HealthGPT AI</h1>
-          <button
-            onClick={handleLogout}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
+    <main
+      style={{
+        maxWidth: "1100px",
+        margin: "0 auto",
+        padding: "40px 32px",
+      }}
+    >
+      {/* =====================================================
+          HEADER
+          ===================================================== */}
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        {error ? (
-          <div className="rounded-lg bg-red-50 p-4 text-red-700" role="alert">
-            {error}
-          </div>
-        ) : user ? (
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Welcome, {user.full_name}!
-            </h2>
-            <p className="mt-2 text-gray-600">This is your protected dashboard.</p>
-            <dl className="mt-6 space-y-2">
-              <div className="flex">
-                <dt className="w-24 font-medium text-gray-500">Name</dt>
-                <dd className="text-gray-900">{user.full_name}</dd>
-              </div>
-              <div className="flex">
-                <dt className="w-24 font-medium text-gray-500">Email</dt>
-                <dd className="text-gray-900">{user.email}</dd>
-              </div>
-            </dl>
-          </div>
-        ) : null}
-      </main>
-    </div>
-  )
+      <section
+        style={{
+          marginBottom: "40px",
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontSize: "14px",
+            opacity: 0.65,
+          }}
+        >
+          {t("app.name")}
+        </p>
+
+        <h1
+          style={{
+            margin: "8px 0 10px",
+            fontSize: "32px",
+          }}
+        >
+          {t(greetingKey, {
+            name: firstName,
+          })}
+        </h1>
+
+        <p
+          style={{
+            margin: 0,
+            fontSize: "16px",
+            opacity: 0.7,
+          }}
+        >
+          {t("dashboard.question")}
+        </p>
+      </section>
+
+      {/* =====================================================
+          FEATURE CARDS
+          ===================================================== */}
+
+      <section>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "20px",
+          }}
+        >
+          {features.map(
+            ({
+              key,
+              path,
+              icon: Icon,
+            }) => (
+              <article
+                key={path}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "16px",
+                  padding: "24px",
+                  background: "#ffffff",
+                }}
+              >
+                {/* Icon */}
+
+                <div
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#f3f4f6",
+                    marginBottom: "18px",
+                  }}
+                >
+                  <Icon size={22} />
+                </div>
+
+                {/* Title */}
+
+                <h2
+                  style={{
+                    margin: "0 0 10px",
+                    fontSize: "20px",
+                  }}
+                >
+                  {t(
+                    `dashboard.${key}.title`,
+                  )}
+                </h2>
+
+                {/* Description */}
+
+                <p
+                  style={{
+                    margin: "0 0 22px",
+                    lineHeight: 1.6,
+                    opacity: 0.7,
+                  }}
+                >
+                  {t(
+                    `dashboard.${key}.description`,
+                  )}
+                </p>
+
+                {/* Button */}
+
+                <button
+                  onClick={() =>
+                    navigate(path)
+                  }
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  {t(
+                    `dashboard.${key}.button`,
+                  )}
+
+                  <ArrowRight size={16} />
+                </button>
+              </article>
+            ),
+          )}
+        </div>
+      </section>
+
+      {/* =====================================================
+          DISCLAIMER
+          ===================================================== */}
+
+      <section
+        style={{
+          marginTop: "40px",
+          padding: "18px 20px",
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
+          fontSize: "13px",
+          lineHeight: 1.6,
+          opacity: 0.75,
+        }}
+      >
+        <strong>
+          {t("dashboard.disclaimer.title")}
+        </strong>{" "}
+
+        {t("dashboard.disclaimer.text")}
+      </section>
+    </main>
+  );
 }

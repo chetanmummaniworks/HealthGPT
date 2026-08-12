@@ -8,7 +8,10 @@ class LoginRequest(BaseModel):
 
     email: EmailStr
     password: str
+class GoogleLoginRequest(BaseModel):
+    """Request containing a Google Identity Services ID token."""
 
+    credential: str
 
 class TokenResponse(BaseModel):
     """Response schema containing a JWT access token."""

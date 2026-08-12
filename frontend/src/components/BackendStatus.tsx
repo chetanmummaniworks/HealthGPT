@@ -49,8 +49,8 @@ export default function BackendStatus() {
 
   return (
     <p className="text-sm text-red-600" role="alert">
-      Backend: Unavailable — please ensure the API server is running on
-      http://localhost:8000
+     Unavailable — please ensure the API server is running on{' '}
+{import.meta.env.VITE_API_URL}
     </p>
   )
 }

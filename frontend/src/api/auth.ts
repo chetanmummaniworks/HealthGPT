@@ -1,13 +1,12 @@
 import apiClient from './client'
-
 export interface User {
   id: number
   full_name: string
   email: string
   is_active: boolean
   created_at: string
+  preferred_language: string
 }
-
 export interface LoginResponse {
   access_token: string
   token_type: string
@@ -17,13 +16,30 @@ export interface RegisterData {
   full_name: string
   email: string
   password: string
+  preferred_language: string
 }
 
 export interface LoginData {
   email: string
   password: string
 }
+export interface GoogleLoginData {
+  credential: string
+}
+export async function googleLoginUser(
+  credential: string,
+): Promise<LoginResponse> {
 
+  const response =
+    await apiClient.post<LoginResponse>(
+      '/auth/google',
+      {
+        credential,
+      },
+    )
+
+  return response.data
+}
 /**
  * Register a new user.
  */

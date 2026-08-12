@@ -11,12 +11,12 @@ class UserBase(BaseModel):
     full_name: str
     email: EmailStr
 
-
 class UserCreate(UserBase):
     """Request schema for user registration."""
 
     password: str
 
+    preferred_language: str = "English"
 
 class UserRead(UserBase):
     """Response schema for a user.
@@ -29,3 +29,9 @@ class UserRead(UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    preferred_language: str
+    
+class UserPreferencesUpdate(BaseModel):
+    """Schema for updating user preferences."""
+
+    preferred_language: str

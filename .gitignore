@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
 
 # Python
 .venv/
@@ -32,6 +34,7 @@ yarn-error.log*
 pnpm-debug.log*
 .vite/
 
+
 # IDEs and editors
 .vscode/
 .idea/
@@ -50,3 +53,12 @@ logs/
 # Database / migrations local artifacts
 *.sqlite3
 *.db
+# Training datasets
+datasets/
+
+# ML experiment artifacts
+backend_models/disease_prediction/test/
+backend_models/disease_prediction/*metrics.json
+backend_models/disease_prediction/*report.json
+backend_models/disease_prediction/error_analysis.json
+backend_models/disease_prediction/test_predictions.csv

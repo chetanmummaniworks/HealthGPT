@@ -42,6 +42,8 @@ class Settings(BaseSettings):
 
     # AI (prepared for a future milestone)
     gemini_api_key: str
+    # Google Authentication
+    google_client_id: str
 
     # CORS
     # Comma-separated list of allowed origins, e.g.

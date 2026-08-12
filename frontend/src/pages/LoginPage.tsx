@@ -1,93 +1,351 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { loginUser } from '../api/auth'
-import { useAuth } from '../context/AuthContext'
+import {
+  useState,
+  type FormEvent,
+} from "react"
+
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom"
+
+import {
+  useTranslation,
+} from "react-i18next"
+
+import { useAuth } from "../context/AuthContext"
+
+import {
+  GoogleLogin,
+} from "@react-oauth/google"
+
+import {
+  loginUser,
+  googleLoginUser,
+} from "../api/auth"
+
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { login } = useAuth()
-  const navigate = useNavigate()
 
-  async function handleSubmit(e: FormEvent) {
+  const { t } =
+    useTranslation()
+
+  const [email, setEmail] =
+    useState("")
+
+  const [password, setPassword] =
+    useState("")
+
+  const [error, setError] =
+    useState<string | null>(null)
+
+  const [isSubmitting, setIsSubmitting] =
+    useState(false)
+
+  const { login } =
+    useAuth()
+
+  const navigate =
+    useNavigate()
+
+
+  // ==========================================================
+  // EMAIL / PASSWORD LOGIN
+  // ==========================================================
+
+  async function handleSubmit(
+    e: FormEvent,
+  ) {
+
     e.preventDefault()
+
     setError(null)
+
     setIsSubmitting(true)
+
     try {
-      const { access_token } = await loginUser({ email, password })
-      await login(access_token)
-      navigate('/dashboard')
+
+      const {
+        access_token,
+      } = await loginUser({
+        email,
+        password,
+      })
+
+      await login(
+        access_token,
+      )
+
+      navigate(
+        "/dashboard",
+      )
+
     } catch {
-      setError('Invalid email or password')
+
+      setError(
+        t("login.invalidCredentials"),
+      )
+
     } finally {
+
       setIsSubmitting(false)
+
     }
   }
 
+
+  // ==========================================================
+  // GOOGLE LOGIN
+  // ==========================================================
+
+  async function handleGoogleSuccess(
+    credential: string,
+  ) {
+
+    setError(null)
+
+    setIsSubmitting(true)
+
+    try {
+
+      const {
+        access_token,
+      } = await googleLoginUser(
+        credential,
+      )
+
+      await login(
+        access_token,
+      )
+
+      navigate(
+        "/dashboard",
+      )
+
+    } catch (error) {
+
+      console.error(
+        "Google login failed:",
+        error,
+      )
+
+      setError(
+        t("login.googleFailed"),
+      )
+
+    } finally {
+
+      setIsSubmitting(false)
+
+    }
+  }
+
+
   return (
+
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+
       <div className="w-full max-w-md">
+
+        {/* ================================================== */}
+        {/* HEADER */}
+        {/* ================================================== */}
+
         <h1 className="text-center text-3xl font-bold text-gray-900">
+
           HealthGPT AI
+
         </h1>
-        <p className="mt-2 text-center text-gray-600">Sign in to your account</p>
+
+
+        <p className="mt-2 text-center text-gray-600">
+
+          {t("login.subtitle")}
+
+        </p>
+
+
+        {/* ================================================== */}
+        {/* LOGIN FORM */}
+        {/* ================================================== */}
 
         <form
           onSubmit={handleSubmit}
           className="mt-8 space-y-4 rounded-lg bg-white p-6 shadow"
         >
+
+          {/* EMAIL */}
+
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+
+              {t("login.email")}
+
             </label>
+
+
             <input
               id="email"
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(
+                  e.target.value,
+                )
+              }
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500"
             />
+
           </div>
 
+
+          {/* PASSWORD */}
+
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
+
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+
+              {t("login.password")}
+
             </label>
+
+
             <input
               id="password"
               type="password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(
+                  e.target.value,
+                )
+              }
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500"
             />
+
           </div>
 
+
+          {/* ERROR */}
+
           {error && (
-            <p className="text-sm text-red-600" role="alert">
+
+            <p
+              className="text-sm text-red-600"
+              role="alert"
+            >
+
               {error}
+
             </p>
+
           )}
+
+
+          {/* LOGIN BUTTON */}
 
           <button
             type="submit"
             disabled={isSubmitting}
             className="w-full rounded-md bg-teal-600 px-4 py-2 text-white hover:bg-teal-700 disabled:opacity-50"
           >
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
+
+            {isSubmitting
+              ? t("login.signingIn")
+              : t("login.signIn")}
+
           </button>
+
+
+          {/* ================================================= */}
+          {/* DIVIDER */}
+          {/* ================================================= */}
+
+          <div className="flex items-center gap-3">
+
+            <div className="h-px flex-1 bg-gray-200" />
+
+            <span className="text-sm text-gray-500">
+
+              {t("login.or")}
+
+            </span>
+
+            <div className="h-px flex-1 bg-gray-200" />
+
+          </div>
+
+
+          {/* ================================================= */}
+          {/* GOOGLE LOGIN */}
+          {/* ================================================= */}
+
+          <div className="flex justify-center">
+
+            <GoogleLogin
+              onSuccess={(
+                credentialResponse,
+              ) => {
+
+                if (
+                  credentialResponse.credential
+                ) {
+
+                  handleGoogleSuccess(
+                    credentialResponse.credential,
+                  )
+
+                }
+
+              }}
+
+              onError={() => {
+
+                setError(
+                  t(
+                    "login.googleFailed",
+                  ),
+                )
+
+              }}
+
+              useOneTap={false}
+            />
+
+          </div>
+
         </form>
 
+
+        {/* ================================================== */}
+        {/* REGISTER LINK */}
+        {/* ================================================== */}
+
         <p className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-teal-600 hover:underline">
-            Register
+
+          {t("login.noAccount")}{" "}
+
+          <Link
+            to="/register"
+            className="text-teal-600 hover:underline"
+          >
+
+            {t("login.register")}
+
           </Link>
+
         </p>
+
       </div>
+
     </div>
+
   )
 }
