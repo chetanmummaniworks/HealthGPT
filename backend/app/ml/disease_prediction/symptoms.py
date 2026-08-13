@@ -1,80 +1,93 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
-
-import pandas as pd
 
 
 # ============================================================
 # PATH
 # ============================================================
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+# This file is located at:
+#
+# backend/
+#   app/
+#     ml/
+#       disease_prediction/
+#         symptoms.py
+#
+# The vocabulary JSON is in the same directory.
 
-TRAIN_PATH = (
-    PROJECT_ROOT
-    / "datasets"
-    / "disease_prediction"
-    / "processed"
-    / "train.csv"
-)
+BASE_DIR = Path(__file__).resolve().parent
+
+VOCABULARY_PATH = BASE_DIR / "symptom_vocabulary.json"
 
 
-# These columns are metadata / target-derived information.
-# They MUST NOT be sent to the ML model.
-METADATA_COLUMNS = {
-    "pattern_count",
-    "associated_disease_count",
-    "dominant_disease",
-    "dominant_disease_count",
-    "dominance_ratio",
-}
-
+# ============================================================
+# LOAD SYMPTOM VOCABULARY
+# ============================================================
 
 def load_symptom_vocabulary() -> list[str]:
     """
-    Load the authoritative symptom vocabulary from train.csv.
+    Load the authoritative symptom vocabulary from
+    symptom_vocabulary.json.
 
-    The ordering is important because the Logistic Regression
-    model expects the exact same feature ordering used during
-    training.
+    The ordering is important because the trained
+    Logistic Regression model expects the exact same
+    feature ordering used during training.
     """
 
-    df = pd.read_csv(
-        TRAIN_PATH,
-        nrows=1,
-    )
+    if not VOCABULARY_PATH.exists():
+        raise FileNotFoundError(
+            f"Symptom vocabulary not found at: {VOCABULARY_PATH}"
+        )
+
+    with VOCABULARY_PATH.open(
+        "r",
+        encoding="utf-8",
+    ) as file:
+        symptoms = json.load(file)
+
+    if not isinstance(symptoms, list):
+        raise RuntimeError(
+            "symptom_vocabulary.json must contain a JSON array."
+        )
 
     symptoms = [
-        column
-        for column in df.columns
-        if column not in METADATA_COLUMNS
+        str(symptom).strip()
+        for symptom in symptoms
+        if str(symptom).strip()
     ]
 
     if len(symptoms) != 377:
         raise RuntimeError(
-            f"Expected 377 symptoms, "
-            f"found {len(symptoms)}."
+            f"Expected 377 symptoms, found {len(symptoms)}."
         )
 
     return symptoms
 
 
+# ============================================================
+# SYMPTOM SET
+# ============================================================
+
 def get_symptom_set() -> set[str]:
-    """Return symptoms as a set for fast lookup."""
+    """
+    Return symptoms as a set for fast lookup.
+    """
 
-    return set(
-        load_symptom_vocabulary()
-    )
+    return set(load_symptom_vocabulary())
 
+
+# ============================================================
+# DEBUG
+# ============================================================
 
 if __name__ == "__main__":
 
     symptoms = load_symptom_vocabulary()
 
-    print(
-        f"Total symptoms: {len(symptoms)}"
-    )
+    print(f"Total symptoms: {len(symptoms)}")
 
     print("\nFirst 20 symptoms:")
 

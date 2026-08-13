@@ -2,11 +2,9 @@ import {
   NavLink,
   useNavigate,
 } from "react-router-dom";
+
 import {
   History,
-  // existing imports...
-} from "lucide-react";
-import {
   LayoutDashboard,
   Stethoscope,
   FileText,
@@ -19,7 +17,6 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../context/AuthContext";
-
 
 // ==========================================================
 // NAVIGATION
@@ -52,90 +49,104 @@ const navigation = [
     icon: MapPin,
   },
   {
-  key: "healthHistory",
-  path: "/health-history",
-  icon: History,
-},
+    key: "healthHistory",
+    path: "/health-history",
+    icon: History,
+  },
 ];
 
-
 export default function Sidebar() {
+  const navigate = useNavigate();
 
-  const navigate =
-    useNavigate();
+  const { t } = useTranslation();
 
-  const { t } =
-    useTranslation();
-
-  const { logout } =
-    useAuth();
-
+  const { logout } = useAuth();
 
   // ========================================================
   // LOGOUT
   // ========================================================
 
   function handleLogout() {
-
     logout();
 
     navigate("/login");
-
   }
 
-
   return (
-
     <aside
       style={{
         width: "250px",
         minHeight: "100vh",
-        borderRight:
-          "1px solid #e5e7eb",
-        padding:
-          "24px 16px",
+        borderRight: "1px solid #e5e7eb",
+        padding: "24px 16px",
         display: "flex",
         flexDirection: "column",
-        boxSizing:
-          "border-box",
+        boxSizing: "border-box",
+        backgroundColor: "#ffffff",
       }}
     >
-
       {/* ================================================== */}
-      {/* LOGO */}
+      {/* LOGO / BRAND */}
       {/* ================================================== */}
 
       <div
         style={{
-          padding:
-            "8px 12px 28px",
+          padding: "4px 12px 28px",
         }}
       >
-
-        <h2
+        <div
           style={{
-            margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
           }}
         >
-          🩺 HealthGPT
-        </h2>
+          <img
+            src="/healthgpt-logo.jpeg"
+            alt="HealthGPT"
+            style={{
+              width: "46px",
+              height: "46px",
+              objectFit: "contain",
+              borderRadius: "10px",
+            }}
+          />
 
+          <div>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "20px",
+                fontWeight: 700,
+                color: "#111827",
+                lineHeight: 1.2,
+              }}
+            >
+              HealthGPT
+            </h2>
+
+            <p
+              style={{
+                margin: "3px 0 0",
+                fontSize: "11px",
+                color: "#6b7280",
+              }}
+            >
+              AI Healthcare Assistant
+            </p>
+          </div>
+        </div>
 
         <p
           style={{
-            margin:
-              "6px 0 0",
-            fontSize:
-              "13px",
-            opacity:
-              0.7,
+            margin: "12px 0 0",
+            fontSize: "13px",
+            opacity: 0.7,
           }}
         >
           {t("app.subtitle")}
         </p>
-
       </div>
-
 
       {/* ================================================== */}
       {/* MAIN NAVIGATION */}
@@ -148,14 +159,12 @@ export default function Sidebar() {
           gap: "6px",
         }}
       >
-
         {navigation.map(
           ({
             key,
             path,
             icon: Icon,
           }) => (
-
             <NavLink
               key={path}
               to={path}
@@ -163,12 +172,9 @@ export default function Sidebar() {
                 display: "flex",
                 alignItems: "center",
                 gap: "12px",
-                padding:
-                  "11px 12px",
-                borderRadius:
-                  "8px",
-                textDecoration:
-                  "none",
+                padding: "11px 12px",
+                borderRadius: "8px",
+                textDecoration: "none",
                 color: "inherit",
                 background:
                   isActive
@@ -180,24 +186,17 @@ export default function Sidebar() {
                     : 400,
               })}
             >
-
-              <Icon
-                size={19}
-              />
+              <Icon size={19} />
 
               <span>
                 {t(
                   `navigation.${key}`,
                 )}
               </span>
-
             </NavLink>
-
           ),
         )}
-
       </nav>
-
 
       {/* ================================================== */}
       {/* BOTTOM NAVIGATION */}
@@ -205,15 +204,12 @@ export default function Sidebar() {
 
       <div
         style={{
-          marginTop:
-            "auto",
+          marginTop: "auto",
           display: "flex",
-          flexDirection:
-            "column",
+          flexDirection: "column",
           gap: "6px",
         }}
       >
-
         {/* SETTINGS */}
 
         <NavLink
@@ -222,12 +218,9 @@ export default function Sidebar() {
             display: "flex",
             alignItems: "center",
             gap: "12px",
-            padding:
-              "11px 12px",
-            borderRadius:
-              "8px",
-            textDecoration:
-              "none",
+            padding: "11px 12px",
+            borderRadius: "8px",
+            textDecoration: "none",
             color: "inherit",
             background:
               isActive
@@ -239,62 +232,43 @@ export default function Sidebar() {
                 : 400,
           })}
         >
-
-          <Settings
-            size={19}
-          />
+          <Settings size={19} />
 
           <span>
             {t(
               "navigation.settings",
             )}
           </span>
-
         </NavLink>
-
 
         {/* LOGOUT */}
 
         <button
           type="button"
-          onClick={
-            handleLogout
-          }
+          onClick={handleLogout}
           style={{
             display: "flex",
             alignItems: "center",
             gap: "12px",
-            padding:
-              "11px 12px",
+            padding: "11px 12px",
             border: "none",
-            background:
-              "transparent",
-            borderRadius:
-              "8px",
-            cursor:
-              "pointer",
-            textAlign:
-              "left",
-            fontSize:
-              "14px",
+            background: "transparent",
+            borderRadius: "8px",
+            cursor: "pointer",
+            textAlign: "left",
+            fontSize: "14px",
+            width: "100%",
           }}
         >
-
-          <LogOut
-            size={19}
-          />
+          <LogOut size={19} />
 
           <span>
             {t(
               "navigation.logout",
             )}
           </span>
-
         </button>
-
       </div>
-
     </aside>
-
   );
 }

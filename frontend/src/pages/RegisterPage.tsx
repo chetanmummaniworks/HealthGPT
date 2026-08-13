@@ -1,53 +1,73 @@
-import { useState, type FormEvent } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import {
+  useState,
+  type FormEvent,
+} from "react";
+import {
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
 import {
   loginUser,
   registerUser,
-} from "../api/auth"
+} from "../api/auth";
 
-import { useAuth } from "../context/AuthContext"
+import {
+  useAuth,
+} from "../context/AuthContext";
 
-import { useTranslation } from "react-i18next"
+import {
+  useTranslation,
+} from "react-i18next";
 
-import i18n from "../i18n"
+import i18n from "../i18n";
+
 export default function RegisterPage() {
-  const {
-  t,
-} = useTranslation()
+  const { t } =
+    useTranslation();
 
   const [fullName, setFullName] =
-    useState("")
+    useState("");
 
   const [email, setEmail] =
-    useState("")
+    useState("");
 
   const [password, setPassword] =
-    useState("")
+    useState("");
 
   const [preferredLanguage, setPreferredLanguage] =
-  useState("English")
+    useState("English");
 
   const [error, setError] =
-    useState<string | null>(null)
+    useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] =
-    useState(false)
+    useState(false);
+  const [showPassword, setShowPassword] =
+  useState(false);
 
-  const { login } = useAuth()
+  const { login } =
+    useAuth();
 
-  const navigate = useNavigate()
+  const navigate =
+    useNavigate();
 
+  // ==========================================================
+  // REGISTER
+  // ==========================================================
 
   async function handleSubmit(
     e: FormEvent,
   ) {
+    e.preventDefault();
 
-    e.preventDefault()
+    setError(null);
 
-    setError(null)
-
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
 
@@ -61,8 +81,7 @@ export default function RegisterPage() {
         password,
         preferred_language:
           preferredLanguage,
-      })
-
+      });
 
       // --------------------------------------------------
       // Auto-login
@@ -73,18 +92,15 @@ export default function RegisterPage() {
       } = await loginUser({
         email,
         password,
-      })
-
+      });
 
       await login(
         access_token,
-      )
-
+      );
 
       navigate(
         "/dashboard",
-      )
-
+      );
 
     } catch (err: unknown) {
 
@@ -97,74 +113,75 @@ export default function RegisterPage() {
           (
             err as {
               response?: {
-                status?: number
-              }
+                status?: number;
+              };
             }
-          ).response?.status
-
+          ).response?.status;
 
         if (status === 409) {
 
           setError(
             "An account with this email already exists",
-          )
+          );
 
         } else {
 
           setError(
             "Registration failed. Please try again.",
-          )
+          );
         }
 
       } else {
 
         setError(
           "Registration failed. Please try again.",
-        )
+        );
       }
 
     } finally {
 
-      setIsSubmitting(false)
+      setIsSubmitting(false);
 
     }
   }
 
-
   return (
-
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
 
       <div className="w-full max-w-md">
 
-        {/* ------------------------------------------------ */}
-        {/* TITLE */}
-        {/* ------------------------------------------------ */}
+        {/* ================================================== */}
+        {/* HEALTHGPT BRAND */}
+        {/* ================================================== */}
 
-        <h1 className="text-center text-3xl font-bold text-gray-900">
+        <div className="flex flex-col items-center">
 
-          HealthGPT AI
+          <img
+            src="/healthgpt-logo.jpeg"
+            alt="HealthGPT AI"
+            className="h-28 w-28 object-contain"
+          />
 
-        </h1>
+          <h1 className="mt-2 text-center text-3xl font-bold text-gray-900">
+            HealthGPT AI
+          </h1>
 
+          <p className="mt-2 text-center text-gray-600">
+            {t("register.subtitle")}
+          </p>
 
-        <p className="mt-2 text-center text-gray-600">
+        </div>
 
-          {t("register.subtitle")}
-
-        </p>
-
-
-        {/* ------------------------------------------------ */}
+        {/* ================================================== */}
         {/* FORM */}
-        {/* ------------------------------------------------ */}
+        {/* ================================================== */}
 
         <form
           onSubmit={handleSubmit}
           className="mt-8 space-y-4 rounded-lg bg-white p-6 shadow"
         >
 
-          {/* Full Name */}
+          {/* FULL NAME */}
 
           <div>
 
@@ -172,11 +189,8 @@ export default function RegisterPage() {
               htmlFor="fullName"
               className="block text-sm font-medium text-gray-700"
             >
-
               {t("register.fullName")}
-
             </label>
-
 
             <input
               id="fullName"
@@ -193,8 +207,7 @@ export default function RegisterPage() {
 
           </div>
 
-
-          {/* Email */}
+          {/* EMAIL */}
 
           <div>
 
@@ -202,11 +215,8 @@ export default function RegisterPage() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-
               {t("register.email")}
-
             </label>
-
 
             <input
               id="email"
@@ -223,48 +233,43 @@ export default function RegisterPage() {
 
           </div>
 
+          {/* PASSWORD */}
+<div className="relative mt-1">
+  <input
+    id="password"
+    type={showPassword ? "text" : "password"}
+    required
+    minLength={8}
+    value={password}
+    onChange={(e) =>
+      setPassword(e.target.value)
+    }
+    className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500"
+  />
 
-          {/* Password */}
+  <button
+    type="button"
+    onClick={() =>
+      setShowPassword((prev) => !prev)
+    }
+    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+    aria-label={
+      showPassword
+        ? "Hide password"
+        : "Show password"
+    }
+  >
+    {showPassword ? (
+      <EyeOff size={18} />
+    ) : (
+      <Eye size={18} />
+    )}
+  </button>
+</div>
 
-          <div>
-
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-
-              {t("register.password")}
-
-            </label>
-
-
-            <input
-              id="password"
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) =>
-                setPassword(
-                  e.target.value,
-                )
-              }
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500"
-            />
-
-
-            <p className="mt-1 text-xs text-gray-500">
-
-              {t("register.passwordHint")}
-
-            </p>
-
-          </div>
-
-
-          {/* ------------------------------------------------ */}
+          {/* ================================================== */}
           {/* LANGUAGE */}
-          {/* ------------------------------------------------ */}
+          {/* ================================================== */}
 
           <div>
 
@@ -272,45 +277,44 @@ export default function RegisterPage() {
               htmlFor="preferredLanguage"
               className="block text-sm font-medium text-gray-700"
             >
-
               {t(
                 "register.preferredLanguage",
               )}
-
             </label>
-
 
             <select
               id="preferredLanguage"
               value={preferredLanguage}
               onChange={async (e) => {
 
-  const language =
-    e.target.value
+                const language =
+                  e.target.value;
 
-  setPreferredLanguage(
-    language,
-  )
+                setPreferredLanguage(
+                  language,
+                );
 
-  const languageMap: Record<
-    string,
-    string
-  > = {
-    English: "en",
-    Hindi: "hi",
-    Telugu: "te",
-    Tamil: "ta",
-    Bengali: "bn",
-    Marathi: "mr",
-    Kannada: "kn",
-    Malayalam: "ml",
-    Gujarati: "gu",
-  }
+                const languageMap: Record<
+                  string,
+                  string
+                > = {
+                  English: "en",
+                  Hindi: "hi",
+                  Telugu: "te",
+                  Tamil: "ta",
+                  Bengali: "bn",
+                  Marathi: "mr",
+                  Kannada: "kn",
+                  Malayalam: "ml",
+                  Gujarati: "gu",
+                };
 
-  await i18n.changeLanguage(
-    languageMap[language] ?? "en",
-  )
-}}
+                await i18n.changeLanguage(
+                  languageMap[
+                    language
+                  ] ?? "en",
+                );
+              }}
               className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500"
             >
 
@@ -352,42 +356,32 @@ export default function RegisterPage() {
 
             </select>
 
-
             <p className="mt-1 text-xs text-gray-500">
-
               {t(
                 "register.languageDescription",
               )}
-
             </p>
 
           </div>
 
-
-          {/* Error */}
+          {/* ERROR */}
 
           {error && (
-
             <p
               className="text-sm text-red-600"
               role="alert"
             >
-
               {error}
-
             </p>
-
           )}
 
-
-          {/* Submit */}
+          {/* SUBMIT */}
 
           <button
             type="submit"
             disabled={isSubmitting}
             className="w-full rounded-md bg-teal-600 px-4 py-2 text-white hover:bg-teal-700 disabled:opacity-50"
           >
-
             {isSubmitting
               ? t(
                   "register.creating",
@@ -395,13 +389,13 @@ export default function RegisterPage() {
               : t(
                   "register.createAccount",
                 )}
-
           </button>
 
         </form>
 
-
-        {/* Login */}
+        {/* ================================================== */}
+        {/* LOGIN LINK */}
+        {/* ================================================== */}
 
         <p className="mt-4 text-center text-sm text-gray-600">
 
@@ -413,11 +407,9 @@ export default function RegisterPage() {
             to="/login"
             className="text-teal-600 hover:underline"
           >
-
             {t(
               "register.signIn",
             )}
-
           </Link>
 
         </p>
@@ -425,6 +417,5 @@ export default function RegisterPage() {
       </div>
 
     </div>
-
-  )
+  );
 }
