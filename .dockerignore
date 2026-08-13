@@ -1,0 +1,17 @@
+*
+!backend/
+!backend/Dockerfile
+!backend/requirements.txt
+!backend/start.sh
+!backend/app/
+!backend/app/**
+!backend/alembic/
+!backend/alembic/**
+!backend/alembic.ini
+!backend_models/
+!backend_models/disease_prediction/
+!backend_models/disease_prediction/*.joblib
+
+# Never send the local Windows virtual environment
+backend/.venv/
+backend/.venv/**
