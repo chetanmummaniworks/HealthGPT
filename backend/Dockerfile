@@ -10,14 +10,12 @@ RUN apt-get update \
         libgl1 \
         libglib2.0-0 \
         libgomp1 \
+        tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt .
 
-RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
-    torch==2.13.0
-
-RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
 COPY backend_models/ /backend_models/

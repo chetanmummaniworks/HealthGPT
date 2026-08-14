@@ -1,32 +1,35 @@
+from PIL import Image, ImageOps
+import pytesseract
+
+
 class OCRService:
     def __init__(self):
-        import easyocr
-
-        self.reader = easyocr.Reader(
-            ["en"],
-            gpu=False,
-        )
+        pass
 
     def extract_text(
         self,
         image_path: str,
     ) -> str:
 
-        results = self.reader.readtext(
-            image_path,
+        image = Image.open(image_path)
+
+        # Convert to grayscale
+        image = image.convert("L")
+
+        # Improve contrast
+        image = ImageOps.autocontrast(image)
+
+        # Upscale for better recognition
+        image = image.resize(
+            (image.width * 2, image.height * 2)
         )
 
-        extracted_lines = []
+        text = pytesseract.image_to_string(
+            image_path,
+    config="--psm 4",
+)
 
-        for result in results:
-            text = result[1]
-
-            if text.strip():
-                extracted_lines.append(
-                    text.strip()
-                )
-
-        return "\n".join(extracted_lines)
+        return text.strip()
 
 
 _ocr_service: OCRService | None = None

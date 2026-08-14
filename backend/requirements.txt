@@ -13,7 +13,6 @@ cryptography==50.0.0
 cycler==0.12.1
 distro==1.9.0
 dnspython==2.8.0
-easyocr==1.7.2
 email-validator==2.3.0
 fastapi==0.141.1
 filelock==3.32.2
@@ -59,6 +58,7 @@ pydantic_core==2.46.4
 Pygments==2.20.0
 PyJWT==2.13.0
 pyparsing==3.3.2
+pytesseract==0.3.13
 pytest==9.1.1
 python-bidi==0.6.11
 python-dateutil==2.9.0.post0
@@ -87,4 +87,3 @@ urllib3==2.7.0
 uvicorn==0.52.1
 watchfiles==1.2.0
 websockets==16.1.1
-xgboost==3.4.0

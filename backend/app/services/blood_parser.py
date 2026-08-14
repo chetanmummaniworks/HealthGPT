@@ -14,24 +14,25 @@ TEST_ALIASES = {
     ],
 
     "wbc": [
-        "wbc",
-        "white blood cell",
+        "total wbc count",
         "white blood cells",
+        "white blood cell",
         "total leukocyte count",
+        "wbc",
         "tlc",
     ],
 
     "rbc": [
-        "rbc",
-        "red blood cell",
         "red blood cells",
+        "red blood cell",
         "red cell count",
+        "rbc",
     ],
 
     "platelets": [
-        "platelet",
-        "platelets",
         "platelet count",
+        "platelets",
+        "platelet",
     ],
 
     "hematocrit": [
@@ -41,23 +42,60 @@ TEST_ALIASES = {
         "pcv",
     ],
 
+    "mcv": [
+        "mcv",
+    ],
+
+    "mch": [
+        "mch",
+    ],
+
+    "mchc": [
+        "mchc",
+    ],
+
+    "rdw": [
+        "rdw",
+        "row",  # common OCR misread of RDW
+    ],
+
+    "neutrophils": [
+        "neutrophils",
+    ],
+
+    "lymphocytes": [
+        "lymphocytes",
+    ],
+
+    "eosinophils": [
+        "eosinophils",
+    ],
+
+    "monocytes": [
+        "monocytes",
+    ],
+
+    "basophils": [
+        "basophils",
+    ],
+
     "glucose": [
-        "glucose",
+        "fasting blood sugar",
+        "fasting glucose",
         "blood glucose",
         "blood sugar",
-        "fasting glucose",
-        "fasting blood sugar",
+        "glucose",
     ],
 
     "creatinine": [
-        "creatinine",
         "serum creatinine",
+        "creatinine",
     ],
 
     "urea": [
-        "urea",
-        "blood urea",
         "blood urea nitrogen",
+        "blood urea",
+        "urea",
         "bun",
     ],
 
@@ -166,7 +204,6 @@ def normalize_text(text: str) -> list[str]:
     lines = []
 
     for line in text.splitlines():
-
         line = line.strip()
 
         if not line:
@@ -174,6 +211,7 @@ def normalize_text(text: str) -> list[str]:
 
         line = line.replace("µ", "u")
         line = line.replace("μ", "u")
+        line = line.replace("_", " ")
 
         line = re.sub(
             r"\s+",
@@ -210,7 +248,6 @@ def extract_number(text: str):
         return float(
             match.group(0).replace(",", "")
         )
-
     except ValueError:
         return None
 
@@ -230,9 +267,7 @@ def find_test_name(line: str):
     candidates = []
 
     for test_name, aliases in TEST_ALIASES.items():
-
         for alias in aliases:
-
             candidates.append(
                 (
                     len(alias),
@@ -241,15 +276,31 @@ def find_test_name(line: str):
                 )
             )
 
-    # Longest aliases first.
-    candidates.sort(
-        reverse=True
-    )
+    candidates.sort(reverse=True)
 
     for _, test_name, alias in candidates:
-
-        if alias.lower() in lower_line:
+        if lower_line.startswith(alias.lower()):
             return test_name
+
+    return None
+
+
+def find_matched_alias(line: str, test_name: str):
+    """
+    Find the alias at the beginning of an OCR line.
+    """
+
+    lower_line = line.lower()
+
+    aliases = sorted(
+        TEST_ALIASES[test_name],
+        key=len,
+        reverse=True,
+    )
+
+    for alias in aliases:
+        if lower_line.startswith(alias.lower()):
+            return alias
 
     return None
 
@@ -271,101 +322,100 @@ def extract_result(text: str):
 
     lower_text = text.lower()
 
-    # --------------------------------------------------------
-    # Qualitative values
-    # --------------------------------------------------------
-
     if lower_text in QUALITATIVE_VALUES:
-
         return {
             "value": None,
             "result": text,
             "qualitative_value": text,
         }
-
-    # --------------------------------------------------------
-    # NIL / NONE / NOT DETECTED
-    # --------------------------------------------------------
 
     if lower_text in {
         "nil",
         "none",
         "not detected",
     }:
-
         return {
             "value": None,
             "result": text,
             "qualitative_value": text,
         }
 
-    # --------------------------------------------------------
-    # Numeric ranges
-    #
-    # Examples:
-    # 1-2
-    # 0-2
-    # 1.5-2.5
-    # --------------------------------------------------------
-
-    range_match = re.search(
-        r"(?<!\d)"
-        r"(\d+(?:\.\d+)?)"
+    range_match = re.fullmatch(
+        r"\s*"
+        r"[-+]?\d+(?:[.,]\d+)?"
         r"\s*[-–—]\s*"
-        r"(\d+(?:\.\d+)?)"
-        r"(?!\d)",
+        r"[-+]?\d+(?:[.,]\d+)?"
+        r"\s*",
         text,
     )
 
     if range_match:
+        normalized = re.sub(
+            r"\s*[-–—]\s*",
+            "-",
+            text.strip(),
+        )
 
         return {
             "value": None,
-            "result": (
-                f"{range_match.group(1)}-"
-                f"{range_match.group(2)}"
-            ),
+            "result": normalized,
             "qualitative_value": None,
         }
 
-    # --------------------------------------------------------
-    # Single numeric value
-    # --------------------------------------------------------
-# Single numeric value
-#
-# Only accept the value as numeric if the
-# entire result is actually numeric.
-#
-# This prevents OCR strings such as:
-# "0-Z/LPF"
-# from becoming value = 0.
-
     numeric_match = re.fullmatch(
-       r"[-+]?\d+(?:[.,]\d+)?",
-      text.strip(),
-)
-
-    if numeric_match:
-
-      number = float(
-        numeric_match.group(0).replace(",", "")
+        r"[-+]?\d+(?:[.,]\d+)?",
+        text.strip(),
     )
 
-      return {
-        "value": number,
-        "result": text,
-        "qualitative_value": None,
-    }
+    if numeric_match:
+        number = float(
+            numeric_match.group(0).replace(",", "")
+        )
 
-# If the result contains a number mixed with
-# other OCR text, preserve it as a raw result.
+        return {
+            "value": number,
+            "result": text,
+            "qualitative_value": None,
+        }
+
     if re.search(r"\d", text):
+        return {
+            "value": None,
+            "result": text,
+            "qualitative_value": None,
+        }
 
-     return {
-        "value": None,
-        "result": text,
-        "qualitative_value": None,
-    }
+    return None
+
+
+# ============================================================
+# REFERENCE RANGE EXTRACTION
+# ============================================================
+
+def extract_reference_range(text: str):
+    """
+    Extract the first numeric reference range appearing
+    after the reported result.
+
+    Example:
+        "15 male : 14 - 16 g%"
+        -> "14 - 16"
+    """
+
+    matches = re.finditer(
+        r"(?<!\d)"
+        r"(\d+(?:[.,]\d+)?)"
+        r"\s*[-–—]\s*"
+        r"(\d+(?:[.,]\d+)?)"
+        r"(?!\d)",
+        text,
+    )
+
+    for match in matches:
+        return (
+            f"{match.group(1)} - "
+            f"{match.group(2)}"
+        )
 
     return None
 
@@ -377,21 +427,22 @@ def extract_result(text: str):
 def extract_unit(text: str):
     """
     Extract common laboratory units.
-
-    Only returns pH when the text actually represents
-    a pH unit/value, rather than matching arbitrary
-    occurrences of the letters 'ph'.
     """
 
     text = text.strip()
 
-    # Longer / more specific units first.
     unit_match = re.search(
-        r"(g/dl|mg/dl|mmol/l|"
+        r"("
+        r"g/dl|mg/dl|mmol/l|"
         r"mg/l|g/l|"
+        r"g%|"
+        r"fl|pg|"
+        r"/cu\.?\s*mm|"
         r"/ul|/µl|"
         r"/hpf|/lpf|"
-        r"\bhpf\b|\blpf\b)",
+        r"%|"
+        r"\bhpf\b|\blpf\b"
+        r")",
         text,
         re.IGNORECASE,
     )
@@ -399,14 +450,6 @@ def extract_unit(text: str):
     if unit_match:
         return unit_match.group(0)
 
-    # pH should only be recognized when it appears
-    # as a standalone token.
-    #
-    # Examples:
-    #   "5.5 pH" -> pH
-    #   "pH"     -> pH
-    #
-    # But don't match "ph" buried inside another word.
     ph_match = re.search(
         r"\bpH\b",
         text,
@@ -418,6 +461,7 @@ def extract_unit(text: str):
 
     return None
 
+
 # ============================================================
 # REPORT PARSER
 # ============================================================
@@ -425,108 +469,102 @@ def extract_unit(text: str):
 def parse_blood_report(
     text: str,
 ) -> list[dict]:
+    """
+    Parse OCR text from laboratory reports.
+
+    The parser expects the reported value to appear on
+    the same OCR line as the test name, which matches
+    the Tesseract --psm 4 output used by HealthGPT.
+    """
 
     lines = normalize_text(text)
-
     results = []
 
-    i = 0
+    for line in lines:
 
-    while i < len(lines):
-
-        test_name = find_test_name(lines[i])
+        test_name = find_test_name(line)
 
         if test_name is None:
-            i += 1
             continue
 
-        raw_lines = [lines[i]]
+        matched_alias = find_matched_alias(
+            line,
+            test_name,
+        )
+
+        if matched_alias is None:
+            continue
+
+        remainder = line[
+            len(matched_alias):
+        ].strip()
+
+        if not remainder:
+            continue
+
+        # ----------------------------------------------------
+        # First numeric value after the test name = result
+        #
+        # Example:
+        # "Haemoglobin 15 male : 14 - 16 g%"
+        #
+        # -> value = 15
+        # ----------------------------------------------------
+
+        number_match = re.search(
+            r"(?<!\d)"
+            r"[-+]?"
+            r"\d+(?:[.,]\d+)?"
+            r"(?!\d)",
+            remainder,
+        )
 
         value = None
         result = None
         qualitative_value = None
-        unit = None
-        reference_range = None
 
-        found_result = False
+        if number_match:
 
-        # Look ahead through the following OCR lines.
-        for offset in range(1, 6):
+            value_text = number_match.group(0)
 
-            next_index = i + offset
-
-            if next_index >= len(lines):
-                break
-
-            candidate = lines[next_index]
-
-            # Stop when another known test begins.
-            if find_test_name(candidate) is not None:
-                break
-
-            # ------------------------------------------------
-            # Once we have a result, subsequent lines can
-            # contain unit/reference information.
-            # ------------------------------------------------
-
-            if found_result:
-
-                reference = extract_reference_range(
-                    candidate
+            try:
+                value = float(
+                    value_text.replace(",", "")
                 )
+                result = value_text
 
-                if reference is not None:
-                    reference_range = reference
-                    raw_lines.append(candidate)
-                    continue
+            except ValueError:
+                pass
 
-                detected_unit = extract_unit(
-                    candidate
-                )
+        else:
 
-                if detected_unit is not None:
-                    unit = detected_unit
-                    raw_lines.append(candidate)
-                    continue
+            lower_remainder = remainder.lower()
 
-                # Don't consume unrelated OCR garbage.
-                continue
+            for qualitative in sorted(
+                QUALITATIVE_VALUES,
+                key=len,
+                reverse=True,
+            ):
 
-            # ------------------------------------------------
-            # Try to extract the actual result.
-            # ------------------------------------------------
+                if lower_remainder.startswith(
+                    qualitative
+                ):
 
-            parsed = extract_result(candidate)
+                    qualitative_value = (
+                        qualitative
+                    )
 
-            if parsed is not None:
+                    result = remainder
 
-                value = parsed["value"]
-                result = parsed["result"]
-                qualitative_value = (
-                    parsed["qualitative_value"]
-                )
+                    break
 
-                unit = extract_unit(candidate)
+        reference_range = extract_reference_range(
+            remainder
+        )
 
-                raw_lines.append(candidate)
-
-                found_result = True
-
-                continue
-
-            # ------------------------------------------------
-            # A standalone unit can appear after the result.
-            # ------------------------------------------------
-
-            detected_unit = extract_unit(candidate)
-
-            if detected_unit is not None:
-                unit = detected_unit
-                raw_lines.append(candidate)
-
-        # ----------------------------------------------------
-        # Store only meaningful results.
-        # ----------------------------------------------------
+        unit = extract_unit(
+            remainder
+        )
 
         if (
             value is not None
@@ -546,39 +584,8 @@ def parse_blood_report(
                     "reference_range": (
                         reference_range
                     ),
-                    "raw_line": " | ".join(
-                        raw_lines
-                    ),
+                    "raw_line": line,
                 }
             )
 
-        i += 1
-
     return results
-
-def extract_reference_range(text: str):
-    """
-    Extract a numeric reference range from OCR text.
-
-    Examples:
-        1.005 - 1.030
-        0 - 2
-        1.5-2.5
-    """
-
-    text = text.strip()
-
-    match = re.search(
-        r"(\d+(?:\.\d+)?)"
-        r"\s*[-–—=]\s*"
-        r"(\d+(?:\.\d+)?)",
-        text,
-    )
-
-    if match:
-        return (
-            f"{match.group(1)} - "
-            f"{match.group(2)}"
-        )
-
-    return None
