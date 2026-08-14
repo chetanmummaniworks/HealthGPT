@@ -1,8 +1,7 @@
-import easyocr
-
-
 class OCRService:
     def __init__(self):
+        import easyocr
+
         self.reader = easyocr.Reader(
             ["en"],
             gpu=False,
@@ -27,9 +26,7 @@ class OCRService:
                     text.strip()
                 )
 
-        return "\n".join(
-            extracted_lines
-        )
+        return "\n".join(extracted_lines)
 
 
 _ocr_service: OCRService | None = None

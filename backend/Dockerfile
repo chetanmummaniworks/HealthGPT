@@ -14,7 +14,10 @@ RUN apt-get update \
 
 COPY backend/requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+    torch==2.13.0
+
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 COPY backend/ .
 COPY backend_models/ /backend_models/
