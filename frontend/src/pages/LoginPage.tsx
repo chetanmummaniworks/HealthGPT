@@ -190,16 +190,23 @@ export default function LoginPage() {
 
           {/* PASSWORD */}
           <div className="relative mt-1">
-  <input
-    id="password"
-    type={showPassword ? "text" : "password"}
-    required
-    value={password}
-    onChange={(e) =>
-      setPassword(e.target.value)
-    }
-    className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500"
-  />
+<label
+  htmlFor="password"
+  className="block text-sm font-medium text-gray-700 mb-1"
+>
+  Password
+</label>
+
+<input
+  id="password"
+  type={showPassword ? "text" : "password"}
+  required
+  value={password}
+  onChange={(e) =>
+    setPassword(e.target.value)
+  }
+  className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500"
+/>
 
   <button
     type="button"
